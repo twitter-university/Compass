@@ -18,10 +18,12 @@ import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.text.format.DateUtils;
+import android.util.Log;
 import android.widget.TextView;
 
 public class MainActivity extends Activity {
 	private static final String TAG = "Compass";
+    public final static boolean DEBUG = false;
 	private static final String PROVIDER = LocationManager.GPS_PROVIDER;
 	private static final long MIN_TIME = 10000; // milliseconds
 	private static final float MIN_DISTANCE = 10; // meters
@@ -55,7 +57,8 @@ public class MainActivity extends Activity {
 
 		// Wake lock
 		powerManager = (PowerManager) getSystemService(POWER_SERVICE);
-		wakeLock = powerManager.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, TAG);
+		wakeLock = powerManager.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK,
+				TAG);
 	}
 
 	@Override
@@ -164,16 +167,29 @@ public class MainActivity extends Activity {
 		}
 	};
 
+	private float lastDegrees = -1;
+	private static final int TRESHHOLD = 10;
+
 	private void updateSensorEvent(SensorEvent event) {
 		if (event == null) {
 			sensorOutput.setText("No sensor data yet...");
 			return;
 		}
 
-		sensorOutput.setText(String.format(
-				"Azimuth: %.2f\nPitch: %.2f\nRoll: %.2f", event.values[0],
-				event.values[0], event.values[0]));
-		
-		compass.setDegrees(event.values[0]);
+		// Figure out the trashhold
+		if (Math.pow(event.values[0] - lastDegrees, 2) < TRESHHOLD) {
+			return;
+		}
+		lastDegrees = event.values[0];
+
+		if (DEBUG)
+			Log.d(TAG, String.format("Compass direction changed: %.2f, %.2f",
+					lastDegrees, event.values[0]));
+
+		sensorOutput.setText(String.format("Azimuth: %d\nPitch: %d\nRoll: %d",
+				(int) event.values[0], (int) event.values[1],
+				(int) event.values[2]));
+
+		compass.setDegrees((int) event.values[0]);
 	}
 }
