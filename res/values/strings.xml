@@ -1,0 +1,9 @@
+<resources>
+
+    <string name="app_name">Compass</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="menu_settings">Settings</string>
+    <string name="title_activity_main">Compass</string>
+    <string name="waiting">Waiting...</string>
+
+</resources>
