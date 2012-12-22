@@ -10,6 +10,7 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Address;
 import android.location.Geocoder;
+import android.location.GpsSatellite;
 import android.location.GpsStatus;
 import android.location.Location;
 import android.location.LocationListener;
@@ -23,10 +24,10 @@ import android.widget.TextView;
 
 public class MainActivity extends Activity {
 	private static final String TAG = "Compass";
-    public final static boolean DEBUG = false;
+	public final static boolean DEBUG = false;
 	private static final String PROVIDER = LocationManager.GPS_PROVIDER;
 	private static final long MIN_TIME = 10000; // milliseconds
-	private static final float MIN_DISTANCE = 10; // meters
+	private static final float MIN_DISTANCE = 1000; // meters
 	private TextView locationOutput, sensorOutput;
 	private CompassView compass;
 	private LocationManager locationManager;
@@ -104,12 +105,14 @@ public class MainActivity extends Activity {
 
 	/** Updates the UI with new location. */
 	private void updateLocation(Location location) {
-
 		// Check if location is valid
 		if (location == null) {
 			locationOutput.setText("Location is not known");
 			return;
 		}
+
+		if (DEBUG)
+			Log.d(TAG, "updateLocation at: " + System.currentTimeMillis());
 
 		locationOutput.setText("");
 
@@ -148,10 +151,14 @@ public class MainActivity extends Activity {
 	private GpsStatus.Listener gpsListener = new GpsStatus.Listener() {
 		@Override
 		public void onGpsStatusChanged(int event) {
+			TextView out = ((TextView) findViewById(R.id.satellites_output));
 			gpsStatus = locationManager.getGpsStatus(null);
-			((TextView) findViewById(R.id.satellites_output))
-					.setText("\nSatellites time-to-first-fix: "
-							+ gpsStatus.getTimeToFirstFix() + "ms");
+
+			out.setText("\nSatellites time-to-first-fix: "
+					+ gpsStatus.getTimeToFirstFix() + "ms");
+			for (GpsSatellite sat : gpsStatus.getSatellites()) {
+				out.append("\n" + sat.getAzimuth() + "/" + sat.getElevation());
+			}
 		}
 	};
 
